@@ -3,7 +3,8 @@
     main
 """
 from __future__ import print_function, absolute_import
-from random import seed, randint
+from random import seed, randint, choice
+import itertools
 
 
 __author__ = 'fashust'
@@ -79,12 +80,71 @@ class Board(object):
                 print('-' * 25)
 
 
+class CPUPlayer(object):
+    """
+        simple cpu ai
+    """
+    def __init__(self, board):
+        """
+            init
+        """
+        self.moves = {x: '' for x in itertools.product(xrange(3), repeat=2)}
+        self.board = board
+        self.last_move = None
+        self.last_user_move = None
+
+    def move(self):
+        """
+            cpu move
+        """
+        rows = map(''.join, self.board.rows())
+        cols = map(''.join, self.board.cols())
+        diags = map(''.join, self.board.diagonals())
+        moves = [_[0] for _ in self.moves.iteritems() if not _[1]]
+        if 'XX' in rows and len(moves) > 1:
+            # block row
+            moves = [
+                _ for _ in moves if _[0] in [
+                    i for i, x in enumerate(rows) if x == 'XX'
+                ]
+            ]
+            print('x_filter', moves)
+        if 'XX' in cols and len(moves) > 1:
+            # block colum
+            moves = [
+                _ for _ in moves if _[1] in [
+                    i for i, x in enumerate(cols) if x == 'XX'
+                ]
+            ]
+        if 'XX' in diags and len(moves) > 1:
+            # block diagonal
+            moves = [
+                _ for _ in moves if _ in (
+                    [(i, 2 - i) for i in xrange(3)] if diags.index('XX')
+                    else [(i, i) for i in xrange(3)]
+                )
+            ]
+        self.last_move = choice(moves)
+        self.moves[self.last_move] = CPU
+        x, y = self.last_move
+        return x + 1, y + 1
+
+    def set_user_move(self, x, y):
+        """
+            update last user move
+        """
+        self.last_user_move = x - 1, y - 1
+        self.moves[self.last_user_move] = USER
+
+
 def main():
     """
         main
     """
     b = Board()
+    cpu = CPUPlayer(b)
     b.show()
+    moves = 9
     while True:
         # user
         try:
@@ -100,23 +160,41 @@ def main():
             continue
         if not b.get_cell(x, y):
             b.set_cell(x, y)
+            cpu.set_user_move(x, y)
             is_win = b.is_win()
+            moves -= 1
+            if moves == 0:
+                print('Dare')
+                return
             if is_win:
+                b.show()
                 print(is_win)
                 return
+        else:
+            continue
         # user
         # cpu
         while True:
-            x, y = randint(1, 3), randint(1, 3)
+            # x, y = randint(1, 3), randint(1, 3)
+            x, y = cpu.move()
             if not b.get_cell(x, y):
                 b.set_cell(x, y, False)
+                moves -= 1
+                if moves == 0:
+                    print('Dare')
+                    return
                 is_win = b.is_win()
                 if is_win:
+                    b.show()
                     print(is_win)
                     return
                 break
+            else:
+                continue
         # cpu
-        # b.is_win()
+        if moves == 0:
+            print('Dare')
+            return
         b.show()
 
 
