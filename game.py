@@ -11,6 +11,7 @@ from itertools import product
 __author__ = 'fashust'
 __email__ = 'fashust.nefor@gmail.com'
 
+
 USER = 'X'
 CPU = 'O'
 
@@ -23,7 +24,7 @@ class Board(object):
         """
             init
         """
-        self.board = [['' for y in xrange(3)] for x in xrange(3)]
+        self.board = [['' for row in xrange(3)] for col in xrange(3)]
 
     def set_cell(self, x, y, user_symbol=True):
         """
@@ -84,7 +85,6 @@ class CPUPlayer(object):
     """
         simple cpu ai
     """
-
     def __init__(self, board):
         """
             init
@@ -116,6 +116,7 @@ class CPUPlayer(object):
         cols = map(''.join, self.board.cols())
         diags = map(''.join, self.board.diagonals())
         moves = [_[0] for _ in self.moves.iteritems() if not _[1]]
+        print('all left moves', moves)
         if 'XX' in rows and len(moves) > 1:
             # block row
             moves = [
@@ -123,6 +124,7 @@ class CPUPlayer(object):
                     i for i, x in enumerate(rows) if x == 'XX'
                 ]
             ]
+            print('rows filter', moves)
         if 'XX' in cols and len(moves) > 1:
             # block colum
             moves = [
@@ -130,6 +132,7 @@ class CPUPlayer(object):
                     i for i, x in enumerate(cols) if x == 'XX'
                 ]
             ]
+            print('cols filter', moves)
         if 'XX' in diags and len(moves) > 1:
             # block diagonal
             moves = [
@@ -138,6 +141,8 @@ class CPUPlayer(object):
                     else [(i, i) for i in xrange(3)]
                 )
             ]
+            print('diags filter', moves)
+        print('left moves', moves)
         return moves
 
     def set_user_move(self, x, y):
@@ -152,7 +157,6 @@ class UserPlayer(object):
     """
         user player
     """
-
     def __init__(self, board):
         """
             init
@@ -203,17 +207,18 @@ def count_moves(moves):
     """
         count game moves
     """
-    moves -= 1
-    if moves == 0:
-        print('Dare')
+    moves[0] -= 1
+    if moves[0] == 0:
+        print('Draw')
         return lambda: exit()
     return moves
 
 
-def check_result(result, moves):
+def check_result(result, moves, board):
     """
         check move result
     """
+    board.show()
     if not result:
         moves = count_moves(moves)
         if type(moves) is FunctionType:
@@ -232,18 +237,15 @@ def main():
     cpu = CPUPlayer(board)
     user = UserPlayer(board)
     board.show()
-    moves = 9
+    moves = [9]
     while True:
         # user move
         ux, uy, result = user.move()
-        check_result(result, moves)()
+        check_result(result, moves, board)()
+        # cpu move
         cpu.set_user_move(ux, uy)
-        # user move
-        # cpu move
         result = cpu.move()
-        board.show()
-        check_result(result, moves)()
-        # cpu move
+        check_result(result, moves, board)()
 
 
 if __name__ == '__main__':
