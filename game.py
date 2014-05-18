@@ -116,7 +116,6 @@ class CPUPlayer(object):
         cols = map(''.join, self.board.cols())
         diags = map(''.join, self.board.diagonals())
         moves = [_[0] for _ in self.moves.iteritems() if not _[1]]
-        print('all left moves', moves)
         if 'XX' in rows and len(moves) > 1:
             # block row
             moves = [
@@ -124,7 +123,6 @@ class CPUPlayer(object):
                     i for i, x in enumerate(rows) if x == 'XX'
                 ]
             ]
-            print('rows filter', moves)
         if 'XX' in cols and len(moves) > 1:
             # block colum
             moves = [
@@ -132,7 +130,6 @@ class CPUPlayer(object):
                     i for i, x in enumerate(cols) if x == 'XX'
                 ]
             ]
-            print('cols filter', moves)
         if 'XX' in diags and len(moves) > 1:
             # block diagonal
             moves = [
@@ -141,8 +138,6 @@ class CPUPlayer(object):
                     else [(i, i) for i in xrange(3)]
                 )
             ]
-            print('diags filter', moves)
-        print('left moves', moves)
         return moves
 
     def set_user_move(self, x, y):
@@ -203,12 +198,13 @@ class UserPlayer(object):
         return self.x, self.y, self.board.is_win()
 
 
-def count_moves(moves):
+def count_moves(moves, board):
     """
         count game moves
     """
     moves[0] -= 1
     if moves[0] == 0:
+        board.show()
         print('Draw')
         return lambda: exit()
     return moves
@@ -218,13 +214,13 @@ def check_result(result, moves, board):
     """
         check move result
     """
-    board.show()
     if not result:
-        moves = count_moves(moves)
+        moves = count_moves(moves, board)
         if type(moves) is FunctionType:
             moves()
         return lambda: moves
     else:
+        board.show()
         print(result)
         return lambda: exit()
 
@@ -246,6 +242,7 @@ def main():
         cpu.set_user_move(ux, uy)
         result = cpu.move()
         check_result(result, moves, board)()
+        board.show()
 
 
 if __name__ == '__main__':
