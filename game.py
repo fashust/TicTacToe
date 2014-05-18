@@ -4,7 +4,8 @@
 """
 from __future__ import print_function, absolute_import
 from random import seed, random, choice
-import itertools
+from types import FunctionType
+from itertools import product
 
 
 __author__ = 'fashust'
@@ -24,11 +25,11 @@ class Board(object):
         """
         self.board = [['' for y in xrange(3)] for x in xrange(3)]
 
-    def set_cell(self, x, y, user_symb=True):
+    def set_cell(self, x, y, user_symbol=True):
         """
             set X or O in board cell
         """
-        self.board[x - 1][y - 1] = USER if user_symb else CPU
+        self.board[x - 1][y - 1] = USER if user_symbol else CPU
 
     def get_cell(self, x, y):
         """
@@ -76,7 +77,7 @@ class Board(object):
         for i, line in enumerate(self.board):
             print('|'.join(['\t{}\t'.format(_ if _ else '') for _ in line]))
             if i != len(self.board) - 1:
-                print('-' * 25)
+                print('―\t\t―\t\t―\t\t―')
 
 
 class CPUPlayer(object):
@@ -88,7 +89,7 @@ class CPUPlayer(object):
         """
             init
         """
-        self.moves = {x: '' for x in itertools.product(xrange(3), repeat=2)}
+        self.moves = {x: '' for x in product(xrange(3), repeat=2)}
         self.board = board
         self.last_move = None
         self.last_user_move = None
@@ -198,6 +199,31 @@ class UserPlayer(object):
         return self.x, self.y, self.board.is_win()
 
 
+def count_moves(moves):
+    """
+        count game moves
+    """
+    moves -= 1
+    if moves == 0:
+        print('Dare')
+        return lambda: exit()
+    return moves
+
+
+def check_result(result, moves):
+    """
+        check move result
+    """
+    if not result:
+        moves = count_moves(moves)
+        if type(moves) is FunctionType:
+            moves()
+        return lambda: moves
+    else:
+        print(result)
+        return lambda: exit()
+
+
 def main():
     """
         main
@@ -208,74 +234,16 @@ def main():
     board.show()
     moves = 9
     while True:
-        # user
-        # ==== work
-        # try:
-        #     inp = raw_input('select cell (ex: 1,1), q for exit: ')
-        #     x, y = map(lambda _: int(_.strip()), inp.split(','))
-        # except (TypeError, ValueError, NameError) as err:
-        #     continue
-        # finally:
-        #     if inp == 'q':
-        #         return
-        # if (x not in xrange(1, len(board.board) + 1) or
-        #         y not in xrange(1, len(board.board) + 1)):
-        #     continue
-        # if not board.get_cell(x, y):
-        #     board.set_cell(x, y)
-        #     cpu.set_user_move(x, y)
-        #     is_win = board.is_win()
-        #     moves -= 1
-        #     if moves == 0:
-        #         print('Dare')
-        #         return
-        #     if is_win:
-        #         board.show()
-        #         print(is_win)
-        #         return
-        # else:
-        #     continue
-        # ==== work
+        # user move
         ux, uy, result = user.move()
-        if not result:
-            cpu.set_user_move(ux, uy)
-            moves -= 1
-        else:
-            board.show()
-            print(result)
-            return
-        # user
-        # cpu
-        # ===== work
-        # while True:
-        #     x, y = cpu.move()
-        #     if not board.get_cell(x, y):
-        #         board.set_cell(x, y, False)
-        #         moves -= 1
-        #         if moves == 0:
-        #             print('Dare')
-        #             return
-        #         is_win = board.is_win()
-        #         if is_win:
-        #             board.show()
-        #             print(is_win)
-        #             return
-        #         break
-        #     else:
-        #         continue
-        # ===== work
-        result =  cpu.move()
-        if not result:
-            moves -= 1
-        else:
-            board.show()
-            print(result)
-            return
-        # cpu
-        if moves == 0:
-            print('Dare')
-            return
+        check_result(result, moves)()
+        cpu.set_user_move(ux, uy)
+        # user move
+        # cpu move
+        result = cpu.move()
         board.show()
+        check_result(result, moves)()
+        # cpu move
 
 
 if __name__ == '__main__':
